@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JS Map Item Details</title>
+  <script src="https://cdn.amcharts.com/lib/4/core.js"></script>
+  <script src="https://cdn.amcharts.com/lib/4/maps.js"></script>
+  <script src="https://cdn.amcharts.com/lib/4/geodata/worldLow.js"></script>
+  <script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+  <style>
+    #map {
+      width: 100%;
+      height: 500px;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <script>
+    var targetSVG = "M9,0C4.029,0,0,4.029,0,9s4.029,9,9,9s9-4.029,9-9S13.971,0,9,0z M9,15.93 c-3.83,0-6.93-3.1-6.93-6.93S5.17,2.07,9,2.07s6.93,3.1,6.93,6.93S12.83,15.93,9,15.93 M12.5,9c0,1.933-1.567,3.5-3.5,3.5S5.5,10.933,5.5,9S7.067,5.5,9,5.5 S12.5,7.067,12.5,9z";
+
+    am4core.useTheme(am4themes_animated);
+
+    // Create map instance
+    var chart = am4core.create("map", am4maps.MapChart);
+    chart.logo.disabled=true;
+    chart.minZoomLevel = 1;
+    chart.maxZoomLevel = 8;
+    chart.homeZoomLevel = 7;
+    chart.geodata = am4geodata_worldLow;
+    chart.seriesContainer.draggable = true;
+    chart.seriesContainer.resizable = false;
+    chart.projection = new am4maps.projections.Miller();
+    chart.homeGeoPoint = {
+      latitude: 15.956221,
+      longitude: 92.796109,
+    };
+
+    // Map to countries
+    var polygonSeries = chart.series.push(new am4maps.MapPolygonSeries());
+    polygonSeries.exclude = ["AQ"];
+    polygonSeries.useGeodata = true;
+    polygonSeries.strokeOpacity = 0.8;
+    polygonSeries.nonScalingStroke = true;
+
+    // Map to show countries
+    var polygonTemplate = polygonSeries.mapPolygons.template;
+    polygonTemplate.strokeOpacity = 1;
+    polygonTemplate.tooltipText = false;
+    polygonTemplate.nonScalingStroke = true;
+    polygonTemplate.fill = am4core.color("#337ab7");
+
+    // Map
+    var imageSeries = chart.series.push(new am4maps.MapImageSeries());
+
+    // Map
+    var imageSeriesTemplate = imageSeries.mapImages.template;
+    imageSeriesTemplate.width = 15;
+    imageSeriesTemplate.height = 15;
+    imageSeriesTemplate.align = "center";
+    imageSeriesTemplate.valign = "middle";
+    imageSeriesTemplate.nonScaling = true;
+    imageSeriesTemplate.setStateOnChildren = true;
+    imageSeriesTemplate.verticalCenter = "middle";
+    imageSeriesTemplate.horizontalCenter = "middle";
+    imageSeriesTemplate.fill = am4core.color("#ededed");
+    imageSeriesTemplate.propertyFields.latitude = "field_lat";
+    imageSeriesTemplate.propertyFields.longitude = "field_long";
+
+    // Tooltip
+    imageSeriesTemplate.tooltip = new am4core.Tooltip();
+    imageSeriesTemplate.tooltip.label.interactionsEnabled = true;
+    imageSeriesTemplate.tooltip.keepTargetHover = true;
+    imageSeriesTemplate.tooltip.background.stroke = am4core.color("#000000");
+    imageSeriesTemplate.tooltip.label.maxWidth = 200;
+    imageSeriesTemplate.tooltip.label.wrap = true;
+    imageSeriesTemplate.tooltip.propertyFields.pointerOrientation = "orientation";
+    imageSeriesTemplate.tooltip.propertyFields.dy = "offset";
+    imageSeriesTemplate.tooltipHTML = "<center>{label}</center>";
+
+    // Map Pointers
+    var circle = imageSeriesTemplate.createChild(am4core.Sprite);
+    circle.scale = 1;
+    circle.path = targetSVG;
+    circle.fill = am4core.color("#000000");
+    circle.cursorOverStyle = am4core.MouseCursorStyle.pointer;
+    circle.events.on("hit", function(ev) {
+      chart.closeAllPopups();
+      var popupcontenttitle = ev.target.dataItem.dataContext.title;
+      var popupcontentsummary = ev.target.dataItem.dataContext.field_summary ? `<center>${ev.target.dataItem.dataContext.field_summary}</center>` : '';
+      var popupcontentbtn = ev.target.dataItem.dataContext.view_node ? `<center><a class="btn btn-teal" href='${ev.target.dataItem.dataContext.view_node}'>View Terminal</a></center>` : '';
+      var popup = chart.openPopup(`${popupcontentsummary}${popupcontentbtn}`,popupcontenttitle);
+      popup.showCurtain = true;
+      popup.draggable = false;
+    });
+
+    // Map Dataset
+    imageSeries.data = [
+      {
+        "field_lat": 19.0760,
+        "field_long": 72.8777,
+        "field_summary": "Born & Brought up, Graduated & Worked as Lead Web Developer with Microquery Ltd.",
+        "label": "MUM",
+        "title": "Mumbai, India",
+      },
+      {
+        "field_lat": 14.5547,
+        "field_long": 121.0244,
+        "field_summary": "Working as Sr. Frontend Developer with Srijan Technologies.",
+        "label": "MC",
+        "title": "Makati, Philippines",
+      },
+    ];
+  </script>
+</body>
+</html>
